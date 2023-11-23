@@ -1,2 +1,4 @@
-uvicorn
-loguru
+eralchemy2
+lxml
+requests
+

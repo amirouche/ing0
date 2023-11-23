@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "template"
+name = "ingzero"
 version = "0.0.0"
-description = "Lorem ipsum dolorem sit amet"
+description = "Divers productivity tools"
 readme = "README.md"
 requires-python = ">=3.10"
 dynamic = ["dependencies"]
@@ -14,4 +14,4 @@ dynamic = ["dependencies"]
 dependencies = {file = ["requirements.txt"]}
 
 [console_scripts]
-template = "template:__main__"
+ing0 = "ing0:__main__"

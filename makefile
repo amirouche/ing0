@@ -11,6 +11,8 @@ init: ## Prepare the host sytem for development
 
 check: ## Run tests
 	pytest -vvv --exitfirst --capture=no $(MAIN).py
+
+security:
 	bandit --skip=B101 -r $(MAIN).py
 
 check-fast: ## Run tests, fail fast
@@ -54,3 +56,6 @@ release: ## Release package on pypi
 	make check-only
 	python3 -m build
 	python3 -m twine upload dist/*
+
+nix: # Spawn a new shell with system dependecies
+	nix-shell -p graphviz python311Packages.pip python311 gcc autoconf automake emacs neovim --command ./venv
