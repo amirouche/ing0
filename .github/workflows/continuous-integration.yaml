@@ -23,6 +23,7 @@ jobs:
     runs-on:  ${{ matrix.os }}
     name: ${{ matrix.python-version }} on ${{ matrix.os }}
     steps:
+      - run: sudo apt install graphviz-dev
       - run: gh repo clone $GITHUB_REPOSITORY -- --depth=1
       - run: cd $(echo $GITHUB_REPOSITORY | cut -d'/' -f2) && git checkout $GITHUB_SHA
       - name: Set up Python
