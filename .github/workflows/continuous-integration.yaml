@@ -12,11 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - 3.9
           - "3.10"
           - "3.11"
-          # - "3.12" # it is still early, first released 2023-09-19.
-          - pypy-3.9
+          - "3.12" # it is still early, first released 2023-09-19.
           - pypy-3.10
         os:
           - ubuntu-latest
