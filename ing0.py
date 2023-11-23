@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-import sys
 import os
-from pathlib import Path
 import shlex
 import subprocess
+import sys
+from pathlib import Path
 
-from lxml.html import fromstring as string2html
 import requests
-
+from lxml.html import fromstring as string2html
 
 DEBUG = os.environ.get("DEBUG")
 
-URL = 'https://uk.lxd.images.canonical.com/images/'
+URL = "https://uk.lxd.images.canonical.com/images/"
 
 
 def test_nop():
     assert True
+
 
 def run(command, verbose=False):
     print("** subprocess.run({})".format(command))
@@ -35,9 +35,9 @@ def _images_index_fetch(url):
     try:
         response = requests.get(url, timeout=3)
         html = string2html(response.text)
-        directories = html.xpath('//tr/td/a/text()')
-        directories.remove('Parent Directory')
-        latest = [x.rstrip('/') for x in sorted(directories, reverse=True)]
+        directories = html.xpath("//tr/td/a/text()")
+        directories.remove("Parent Directory")
+        latest = [x.rstrip("/") for x in sorted(directories, reverse=True)]
         return latest
     except Exception:
         if DEBUG:
@@ -52,22 +52,20 @@ def _images_iter_available():
     for distribution in images:
         releases = _images_index_fetch(URL + distribution)
         for release in releases:
-            for arch in ['amd64', 'arm64']:
+            for arch in ["amd64", "arm64"]:
                 yield from _images_iter_available_version(distribution, release, arch)
 
 
 def _images_iter_available_version(distribution, release, arch):
-    builds = _images_index_fetch(URL + distribution + '/' + release + '/' + arch + '/default/')
+    builds = _images_index_fetch(
+        URL + distribution + "/" + release + "/" + arch + "/default/"
+    )
     if builds is None:
         return
     url = "{URL}{distribution}/{release}/{arch}/default/{build}/"
     for build in builds:
         url = url.format(
-            URL=URL,
-            distribution=distribution,
-            release=release,
-            arch=arch,
-            build=build
+            URL=URL, distribution=distribution, release=release, arch=arch, build=build
         )
         yield url
 
@@ -78,7 +76,8 @@ def cli_images_available():
 
 
 def usage():
-    print("""Usage:
+    print(
+        """Usage:
 
   ing0 baggify
   ing0 summary
@@ -89,7 +88,8 @@ def usage():
   ing0 vm spawn NAME
   ing0 vm boot NAME
   ing0 sqli NAME
-""")
+"""
+    )
     return -1
 
 
@@ -103,35 +103,44 @@ def _images_latest(distribution, release, arch):
 
 def cli_create(name, distribution, release, arch):
     print("* ing0: making {}".format(name))
-    work = Path.home() / '.local' / 'ing0' / name
+    work = Path.home() / ".local" / "ing0" / name
     work.mkdir(parents=True, exist_ok=True)
     root = _images_latest(distribution, release, arch)
-    url = root + 'rootfs.tar.xz'
+    url = root + "rootfs.tar.xz"
     run("cd {work} && wget '{url}'".format(work=work, url=url))
-    url = root + 'SHA256SUMS'
+    url = root + "SHA256SUMS"
     run("cd {work} && wget '{url}'".format(work=work, url=url))
-    run("cd {work} && fgrep rootfs.tar.xz SHA256SUMS | sha256sum -c -".format(work=work))
+    run(
+        "cd {work} && fgrep rootfs.tar.xz SHA256SUMS | sha256sum -c -".format(work=work)
+    )
     run("cd {work} && tar xf rootfs.tar.xz".format(work=work))
     # XXX: delete machine-id because it clash with systemd-d128 later in exec
     run("cd {work} && rm etc/machine-id".format(work=work))
     # XXX: delete resolve.conf, and copy the host one when needed in exec
     run("cd {work} && rm etc/resolv.conf".format(work=work), verbose=True)
-    run("cd {work} && echo {name} > etc/hostname".format(work=work, name=name), verbose=True)
+    run(
+        "cd {work} && echo {name} > etc/hostname".format(work=work, name=name),
+        verbose=True,
+    )
     print("* ing0: what is done is not to be done!")
     return 0
 
 
 def cli_exec(name, *extra):
     print("* ing0: spawning {}".format(name))
-    work = Path.home() / '.local' / 'ing0' / name
+    work = Path.home() / ".local" / "ing0" / name
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
-    print("** spawn in progress: {}".format(' '.join(extra)))
+    print("** spawn in progress: {}".format(" ".join(extra)))
     command = "systemd-nspawn --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
     command = command.format(name=name, work=work, cwd=Path.cwd())
     if not extra:
-        extra = ['bash']
-    command += ' ' + '/usr/bin/env PATH=/usr/local/bin/:/usr/bin/:/bin/:/sbin/ ' + ' '.join(extra)
+        extra = ["bash"]
+    command += (
+        " "
+        + "/usr/bin/env PATH=/usr/local/bin/:/usr/bin/:/bin/:/sbin/ "
+        + " ".join(extra)
+    )
     code = subprocess.run(command, shell=True).returncode
     # foward systemd-nspawn exit code
     return code
@@ -139,13 +148,13 @@ def cli_exec(name, *extra):
 
 def cli_spawn(name):
     print("* ing0: booting {}".format(name))
-    work = Path.home() / '.local' / 'ing0' / name
+    work = Path.home() / ".local" / "ing0" / name
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
     print("** booting in progress...")
     command = "systemd-nspawn --machine={name} --boot --capability=CAP_NET_ADMIN --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
     command = command.format(name=name, work=work, cwd=Path.cwd())
-    code = subprocess.run(shlex.split(command)).returncode
+    code = subprocess.run(command, shell=True).returncode
     # foward systemd-nspawn exit code
     return code
 
@@ -167,12 +176,12 @@ qemu-system-x86_64 \
 
 def cli_boot(name):
     print("* ing0: emulate {}".format(name))
-    work = Path.home() / '.local' / 'ing0' / name
+    work = Path.home() / ".local" / "ing0" / name
     print("** setup initramfs with kernel drivers 9p @ {}".format(work))
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
     print("** emulation in progress...")
-    kernel = work / 'boot' / 'vmlinuz'
-    initrd = work / 'boot' / 'initrd.img'
+    kernel = work / "boot" / "vmlinuz"
+    initrd = work / "boot" / "initrd.img"
     command = QEMU_ROOTFS_BARE.format(root=work, kernel=kernel, initrd=initrd)
     code = subprocess.run(shlex.split(command)).returncode
     return code
@@ -192,6 +201,7 @@ def sqli(uri, output, includes):
 def fastapi_routes():
     """Available HTTP routes"""
     from app import app
+
     routes = sorted(app.routes, key=lambda x: x.path)
     # See also:
     #
@@ -201,16 +211,17 @@ def fastapi_routes():
     #
     for route in routes:
         out = "{route.path}\t{methods}\t{route.endpoint.__module__}:{route.endpoint.__name__}"
-        out = out.format(route=route, methods=' '.join(sorted(route.methods)))
+        out = out.format(route=route, methods=" ".join(sorted(route.methods)))
         print(out)
 
 
 def baggify(path, count=None, reverse=True):
     """Glimpsing over the code base, big words first"""
-    import pathlib, sys
+    import pathlib
+    import sys
     from collections import Counter
 
-    IGNORED = 'data return None dict self from import class name value Optional else'
+    IGNORED = "data return None dict self from import class name value Optional else"
     IGNORED = set(IGNORED.split())
 
     path = pathlib.Path(path).resolve()
@@ -218,7 +229,7 @@ def baggify(path, count=None, reverse=True):
     for py in path.rglob("*.py"):
         with py.open() as py:
             string = py.read()
-            string = ''.join([x if x.isalnum() else ' ' for x in string])
+            string = "".join([x if x.isalnum() else " " for x in string])
             tokens = string.split()
             bag.update(tokens)
 
@@ -246,11 +257,11 @@ def baggify(path, count=None, reverse=True):
 
 def is_interesting(path):
     path = str(path)
-    if '/.' in path:
+    if "/." in path:
         return False
-    if 'node_modules' in path:
+    if "node_modules" in path:
         return False
-    if '__pycache__' in path:
+    if "__pycache__" in path:
         return False
     return True
 
@@ -258,6 +269,7 @@ def is_interesting(path):
 def _iter_directories(root):
     import os
     from pathlib import Path
+
     for subdir, dirs, files in os.walk(root):
         if not is_interesting(subdir):
             continue
@@ -269,18 +281,19 @@ def _iter_directories(root):
 def sloc(directory):
     files = 0
     lines = 0
-    for py in directory.rglob('*.py'):
+    for py in directory.rglob("*.py"):
         with py.open() as py:
             files += 1
             for line in py:
                 if not line.strip().isspace():
-                     lines += 1
+                    lines += 1
     return files, lines
 
 
 def summary(root):
     """Number of files, lines of python code, and bag per directory"""
     from pathlib import Path
+
     root = Path(root).resolve()
 
     for directory in _iter_directories(root):
@@ -302,18 +315,18 @@ def __main__():
             sys.exit(summary(root))
         case ["fastapi", "routes"]:
             sys.exit(fastapi_routes())
-        case ['vm', 'available', *args]:
+        case ["vm", "available", *args]:
             return cli_images_available()
-        case ['vm', 'create', *args]:
+        case ["vm", "create", *args]:
             return cli_create(*args)
-        case ['vm', 'exec', *args]:
+        case ["vm", "exec", *args]:
             return cli_exec(*args)
-        case ['vm', 'spawn', name]:
+        case ["vm", "spawn", name]:
             return cli_spawn(name)
-        case ['vm', 'boot', name]:
+        case ["vm", "boot", name]:
             return cli_boot(name)
-        case ['sqli', uri, *includes]:
-            return sqli(uri, 'out.png', includes)
+        case ["sqli", uri, *includes]:
+            return sqli(uri, "out.png", includes)
         case _:
             return usage()
 
