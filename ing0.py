@@ -114,9 +114,9 @@ def cli_create(name, distribution, release, arch):
     )
     run("cd {work} && tar xf rootfs.tar.xz".format(work=work))
     # XXX: delete machine-id because it clash with systemd-d128 later in exec
-    run("cd {work} && rm etc/machine-id".format(work=work))
+    run("cd {work} && rm -f etc/machine-id".format(work=work))
     # XXX: delete resolve.conf, and copy the host one when needed in exec
-    run("cd {work} && rm etc/resolv.conf".format(work=work), verbose=True)
+    run("cd {work} && rm -f etc/resolv.conf".format(work=work), verbose=True)
     run(
         "cd {work} && echo {name} > etc/hostname".format(work=work, name=name),
         verbose=True,
