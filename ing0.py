@@ -126,13 +126,13 @@ def cli_create(name, distribution, release, arch):
 
 
 def cli_exec(name, *extra):
-    print("* ing0: spawning {}".format(name))
-    work = Path.home() / ".local" / "ing0" / name
+    work = Path(name).resolve()
+    print("* ing0: exec {}".format(work.name))
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
     print("** spawn in progress: {}".format(" ".join(extra)))
-    command = "systemd-nspawn --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
-    command = command.format(name=name, work=work, cwd=Path.cwd())
+    command = "systemd-nspawn --background= --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
+    command = command.format(work=work, cwd=Path.cwd())
     if not extra:
         extra = ["bash"]
     command += (
@@ -145,14 +145,18 @@ def cli_exec(name, *extra):
     return code
 
 
-def cli_spawn(name):
-    print("* ing0: booting {}".format(name))
-    work = Path.home() / ".local" / "ing0" / name
+def cli_spawn(path):
+    work = Path(path).resolve()
+    print("* ing0: booting {}".format(work))
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
     print("** booting in progress...")
-    command = "systemd-nspawn --machine={name} --boot --capability=CAP_NET_ADMIN --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
-    command = command.format(name=name, work=work, cwd=Path.cwd())
+    # legacy
+    # command = "systemd-nspawn --machine={name} --boot --capability=CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
+
+    # new for docker within nspawn
+    command = "systemd-nspawn --background= --machine={name} --boot --system-call-filter='@keyring bpf' --capability=CAP_SYS_ADMIN,CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
+    command = command.format(name=work.name, work=work, cwd=Path.cwd())
     code = subprocess.run(command, shell=True).returncode
     # foward systemd-nspawn exit code
     return code
