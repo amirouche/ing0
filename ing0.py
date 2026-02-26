@@ -82,10 +82,10 @@ def usage():
   ing0 summary
   ing0 fastapi routes
   ing0 vm available
-  ing0 vm create NAME DISTRIBUTION RELEASE ARCH
-  ing0 vm exec NAME [COMMAND ...]
-  ing0 vm spawn NAME
-  ing0 vm boot NAME
+  ing0 vm create DIRECTORY DISTRIBUTION RELEASE ARCH
+  ing0 vm exec DIRECTORY [COMMAND ...]
+  ing0 vm spawn DIRECTORY
+  ing0 vm boot DIRECTORY
   ing0 sqli NAME
 """
     )
