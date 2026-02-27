@@ -100,9 +100,9 @@ def _images_latest(distribution, release, arch):
         return None
 
 
-def cli_create(name, distribution, release, arch):
-    print("* ing0: making {}".format(name))
-    work = Path.home() / ".local" / "ing0" / name
+def cli_create(directory, distribution, release, arch):
+    print("* ing0: making {}".format(directory))
+    work = Path(directory).resolve()
     work.mkdir(parents=True, exist_ok=True)
     root = _images_latest(distribution, release, arch)
     url = root + "rootfs.tar.xz"
@@ -118,15 +118,15 @@ def cli_create(name, distribution, release, arch):
     # XXX: delete resolve.conf, and copy the host one when needed in exec
     run("cd {work} && rm -f etc/resolv.conf".format(work=work), verbose=True)
     run(
-        "cd {work} && echo {name} > etc/hostname".format(work=work, name=name),
+        "cd {work} && echo {name} > etc/hostname".format(work=work, name=work.name),
         verbose=True,
     )
     print("* ing0: what is done is not to be done!")
     return 0
 
 
-def cli_exec(name, *extra):
-    work = Path(name).resolve()
+def cli_exec(directory, *extra):
+    work = Path(directory).resolve()
     print("* ing0: exec {}".format(work.name))
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
