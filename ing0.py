@@ -130,11 +130,15 @@ def cli_create(directory, distribution, release, arch):
     return 0
 
 
+def _copy_resolv_conf(work):
+    run("cd {} && cp /etc/resolv.conf etc/resolv.conf".format(shlex.quote(str(work))))
+
+
 def cli_exec(directory, *extra):
     work = Path(directory).resolve()
     print("* ing0: exec {}".format(work.name))
     print("** prepare...")
-    run("cd {} && cp /etc/resolv.conf etc/resolv.conf".format(shlex.quote(str(work))))
+    _copy_resolv_conf(work)
     print("** exec in progress: {}".format(" ".join(extra)))
     print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
 
@@ -157,7 +161,7 @@ def cli_spawn(path):
     work = Path(path).resolve()
     print("* ing0: booting {}".format(work))
     print("** prepare...")
-    run("cd {} && cp /etc/resolv.conf etc/resolv.conf".format(shlex.quote(str(work))))
+    _copy_resolv_conf(work)
     print("** spawning in progress...")
     print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
     # legacy
