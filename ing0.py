@@ -55,6 +55,8 @@ def _images_iter_available():
         return
     for distribution in images:
         releases = _images_index_fetch(URL + distribution)
+        if releases is None:
+            continue
         for release in releases:
             for arch in ["amd64", "arm64"]:
                 yield from _images_iter_available_version(distribution, release, arch)
