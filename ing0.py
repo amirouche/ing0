@@ -173,32 +173,6 @@ def cli_spawn(path):
     return code
 
 
-# XXX: Guest rootfs is a host directory, without image indirection.
-QEMU_ROOTFS_BARE = """
-qemu-system-x86_64 \
-    -enable-kvm \
-    -machine pc,accel=kvm,usb=off,dump-guest-core=off -m 2048 \
-    -smp 4,sockets=4,cores=1,threads=1 -rtc base=utc \
-    -boot strict=on -kernel {kernel} \
-    -initrd {initrd} \
-    -append 'init=/usr/lib/systemd/systemd root=fsRoot rw rootfstype=9p rootflags=trans=virtio,version=9p2000.L,msize=5000000,posixacl console=ttyS0' \
-    -fsdev local,security_model=none,multidevs=remap,id=fsdev-fsRoot,path={root} \
-    -device virtio-9p-pci,id=fsRoot,fsdev=fsdev-fsRoot,mount_tag=fsRoot \
-    -nographic
-"""
-
-
-def cli_boot(name):
-    print("* ing0: emulate {}".format(name))
-    work = Path.home() / ".local" / "ing0" / name
-    print("** setup initramfs with kernel drivers 9p @ {}".format(work))
-    run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
-    print("** emulation in progress...")
-    kernel = work / "boot" / "vmlinuz"
-    initrd = work / "boot" / "initrd.img"
-    command = QEMU_ROOTFS_BARE.format(root=work, kernel=kernel, initrd=initrd)
-    code = subprocess.run(shlex.split(command)).returncode
-    return code
 
 
 def sqli(uri, output, includes):
@@ -333,8 +307,6 @@ def main():
             return cli_exec(*args)
         case ["vm", "spawn", name]:
             return cli_spawn(name)
-        case ["vm", "boot", name]:
-            return cli_boot(name)
         case ["sqli", uri, *includes]:
             return sqli(uri, "out.png", includes)
         case _:
