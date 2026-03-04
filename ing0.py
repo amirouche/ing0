@@ -143,7 +143,7 @@ def cli_exec(directory, *extra):
         + " ".join(shlex.quote(a) for a in extra)
     )
     code = subprocess.run(command, shell=True).returncode
-    # foward systemd-nspawn exit code
+    # forward systemd-nspawn exit code
     return code
 
 
@@ -161,7 +161,7 @@ def cli_spawn(path):
     command = "systemd-nspawn --background= --machine={name} --boot --system-call-filter='@keyring bpf' --capability=CAP_SYS_ADMIN,CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
     command = command.format(name=work.name, work=work, cwd=Path.cwd())
     code = subprocess.run(command, shell=True).returncode
-    # foward systemd-nspawn exit code
+    # forward systemd-nspawn exit code
     return code
 
 
@@ -273,9 +273,6 @@ def is_interesting(path):
 
 
 def _iter_directories(root):
-    import os
-    from pathlib import Path
-
     for subdir, dirs, files in os.walk(root):
         if not is_interesting(subdir):
             continue
