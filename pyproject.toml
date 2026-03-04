@@ -14,4 +14,4 @@ dependencies = [
 ]
 
 [project.scripts]
-ing0 = "ing0:__main__"
+ing0 = "ing0:main"
