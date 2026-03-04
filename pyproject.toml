@@ -10,7 +10,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "lxml>=6.0.2",
-    "requests>=2.32.5",
 ]
 
 [project.scripts]
