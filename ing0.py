@@ -233,6 +233,7 @@ def baggify(path, count=None, reverse=True):
 
     IGNORED = "data return None dict self from import class name value Optional else"
     IGNORED = set(IGNORED.split())
+    BUILTINS = set(dir(builtins))
 
     path = pathlib.Path(path).resolve()
     bag = Counter()
@@ -254,7 +255,7 @@ def baggify(path, count=None, reverse=True):
     for name, total in bag:
         if len(name) <= 3:
             continue
-        if name in set(dir(builtins)):
+        if name in BUILTINS:
             continue
         if name in IGNORED:
             continue
