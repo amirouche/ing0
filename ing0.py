@@ -198,10 +198,10 @@ def sqli(uri, output, includes):
         from eralchemy2 import render_er
     except ImportError:
         print("Try: pip install eralchemy2")
-        exit(42)
+        return 42
 
     render_er(uri, output, include_tables=includes)
-    exit(0)
+    return 0
 
 
 def fastapi_routes():
@@ -311,14 +311,14 @@ def summary(root):
         baggify(directory, 10, reverse=False)
 
 
-def __main__():
+def main():
     match sys.argv[1:]:
         case ["baggify", directory]:
-            sys.exit(baggify(directory))
+            return baggify(directory)
         case ["summary", root]:
-            sys.exit(summary(root))
+            return summary(root)
         case ["fastapi", "routes"]:
-            sys.exit(fastapi_routes())
+            return fastapi_routes()
         case ["vm", "available", *args]:
             return cli_images_available()
         case ["vm", "create", *args]:
@@ -336,4 +336,4 @@ def __main__():
 
 
 if __name__ == "__main__":
-    exit(__main__())
+    sys.exit(main())
