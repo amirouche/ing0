@@ -31,7 +31,7 @@ CLI dispatch is done via `match sys.argv[1:]` in `main()`, which maps subcommand
 | `vm available` | `cli_images_available()` | Fetches LXC image index from `images.linuxcontainers.org` |
 | `vm create DIR DISTRO RELEASE ARCH` | `cli_create()` | Downloads and unpacks a rootfs via wget |
 | `vm exec DIR [CMD...]` | `cli_exec()` | Runs a command inside the rootfs via `systemd-nspawn` |
-| `vm spawn DIR` | `cli_spawn()` | Boots the rootfs as a machine via `systemd-nspawn --boot` |
+| `vm spawn DIR [MOUNT]` | `cli_spawn()` | Boots the rootfs as a machine via `systemd-nspawn --boot`; mounts MOUNT (default: cwd) at `/mnt` — refuses `/`, `/root`, `$HOME` |
 | `sqli URI` | `sqli()` | Renders a database ER diagram via `eralchemy2` |
 
 ### Key helpers
