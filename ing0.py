@@ -133,12 +133,13 @@ def cli_exec(directory, *extra):
     work = Path(directory).resolve()
     print("* ing0: exec {}".format(work.name))
     print("** prepare...")
-    run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
+    run("cd {} && cp /etc/resolv.conf etc/resolv.conf".format(shlex.quote(str(work))))
     print("** exec in progress: {}".format(" ".join(extra)))
     print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
 
-    command = "systemd-nspawn --background= --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
-    command = command.format(work=work, cwd=Path.cwd())
+    command = "systemd-nspawn --background= --uuid=$(systemd-id128 new) -D {} --bind={}:/mnt".format(
+        shlex.quote(str(work)), shlex.quote(str(Path.cwd()))
+    )
     if not extra:
         extra = ["bash"]
     command += (
@@ -155,15 +156,16 @@ def cli_spawn(path):
     work = Path(path).resolve()
     print("* ing0: booting {}".format(work))
     print("** prepare...")
-    run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
+    run("cd {} && cp /etc/resolv.conf etc/resolv.conf".format(shlex.quote(str(work))))
     print("** spawning in progress...")
     print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
     # legacy
     # command = "systemd-nspawn --machine={name} --boot --capability=CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
 
     # new for docker within nspawn
-    command = "systemd-nspawn --background= --machine={name} --boot --system-call-filter='@keyring bpf' --capability=CAP_SYS_ADMIN,CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
-    command = command.format(name=work.name, work=work, cwd=Path.cwd())
+    command = "systemd-nspawn --background= --machine={} --boot --system-call-filter='@keyring bpf' --capability=CAP_SYS_ADMIN,CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D {} --bind={}:/mnt".format(
+        shlex.quote(work.name), shlex.quote(str(work)), shlex.quote(str(Path.cwd()))
+    )
     code = subprocess.run(command, shell=True).returncode
     # forward systemd-nspawn exit code
     return code
