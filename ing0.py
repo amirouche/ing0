@@ -290,7 +290,7 @@ def sloc(directory):
         with py.open() as py:
             files += 1
             for line in py:
-                if not line.strip().isspace():
+                if line.strip():
                     lines += 1
     return files, lines
 
