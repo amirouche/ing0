@@ -139,7 +139,7 @@ def cli_exec(directory, *extra):
     command += (
         " "
         + "/usr/bin/env PATH=/usr/local/bin/:/usr/bin/:/bin/:/sbin/ "
-        + " ".join(extra)
+        + " ".join(shlex.quote(a) for a in extra)
     )
     code = subprocess.run(command, shell=True).returncode
     # foward systemd-nspawn exit code
