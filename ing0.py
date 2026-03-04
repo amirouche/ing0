@@ -105,19 +105,19 @@ def cli_create(directory, distribution, release, arch):
     work.mkdir(parents=True, exist_ok=True)
     root = _images_latest(distribution, release, arch)
     url = root + "rootfs.tar.xz"
-    run("cd {work} && wget '{url}'".format(work=work, url=url))
+    run("cd {} && wget {}".format(shlex.quote(str(work)), shlex.quote(url)))
     url = root + "SHA256SUMS"
-    run("cd {work} && wget '{url}'".format(work=work, url=url))
+    run("cd {} && wget {}".format(shlex.quote(str(work)), shlex.quote(url)))
     run(
-        "cd {work} && fgrep rootfs.tar.xz SHA256SUMS | sha256sum -c -".format(work=work)
+        "cd {} && grep -F rootfs.tar.xz SHA256SUMS | sha256sum -c -".format(shlex.quote(str(work)))
     )
-    run("cd {work} && tar xf rootfs.tar.xz".format(work=work))
+    run("cd {} && tar xf rootfs.tar.xz".format(shlex.quote(str(work))))
     # XXX: delete machine-id because it clash with systemd-d128 later in exec
-    run("cd {work} && rm -f etc/machine-id".format(work=work))
+    run("cd {} && rm -f etc/machine-id".format(shlex.quote(str(work))))
     # XXX: delete resolve.conf, and copy the host one when needed in exec
-    run("cd {work} && rm -f etc/resolv.conf".format(work=work), verbose=True)
+    run("cd {} && rm -f etc/resolv.conf".format(shlex.quote(str(work))), verbose=True)
     run(
-        "cd {work} && echo {name} > etc/hostname".format(work=work, name=work.name),
+        "cd {} && echo {} > etc/hostname".format(shlex.quote(str(work)), shlex.quote(work.name)),
         verbose=True,
     )
     print("* ing0: what is done is not to be done!")
