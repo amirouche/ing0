@@ -61,9 +61,8 @@ def _images_iter_available_version(distribution, release, arch):
     )
     if builds is None:
         return
-    url = "{URL}{distribution}/{release}/{arch}/default/{build}/"
     for build in builds:
-        url = url.format(
+        url = "{URL}{distribution}/{release}/{arch}/default/{build}/".format(
             URL=URL, distribution=distribution, release=release, arch=arch, build=build
         )
         yield url
@@ -130,7 +129,9 @@ def cli_exec(directory, *extra):
     print("* ing0: exec {}".format(work.name))
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
-    print("** spawn in progress: {}".format(" ".join(extra)))
+    print("** exec in progress: {}".format(" ".join(extra)))
+    print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
+
     command = "systemd-nspawn --background= --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
     command = command.format(work=work, cwd=Path.cwd())
     if not extra:
@@ -150,7 +151,8 @@ def cli_spawn(path):
     print("* ing0: booting {}".format(work))
     print("** prepare...")
     run("cd {work} && cp /etc/resolv.conf etc/resolv.conf".format(work=work))
-    print("** booting in progress...")
+    print("** spawning in progress...")
+    print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
     # legacy
     # command = "systemd-nspawn --machine={name} --boot --capability=CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
 
