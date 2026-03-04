@@ -30,12 +30,16 @@ def run(command, verbose=False):
 
 
 def _images_index_fetch(url):
-    import requests
     from lxml.html import fromstring as string2html
 
     try:
-        response = requests.get(url, timeout=3)
-        html = string2html(response.text)
+        result = subprocess.run(
+            ["curl", "-s", "--max-time", "3", url],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        html = string2html(result.stdout)
         directories = html.xpath("//a/text()")
         latest = [x.rstrip("/") for x in sorted(directories, reverse=True)]
         return latest
