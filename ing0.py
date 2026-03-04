@@ -91,7 +91,6 @@ def usage():
   ing0 vm create DIRECTORY DISTRIBUTION RELEASE ARCH
   ing0 vm exec DIRECTORY [COMMAND ...]
   ing0 vm spawn DIRECTORY
-  ing0 vm boot DIRECTORY
   ing0 sqli NAME
 """
     )

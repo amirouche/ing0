@@ -32,7 +32,6 @@ CLI dispatch is done via `match sys.argv[1:]` in `main()`, which maps subcommand
 | `vm create DIR DISTRO RELEASE ARCH` | `cli_create()` | Downloads and unpacks a rootfs via wget |
 | `vm exec DIR [CMD...]` | `cli_exec()` | Runs a command inside the rootfs via `systemd-nspawn` |
 | `vm spawn DIR` | `cli_spawn()` | Boots the rootfs as a machine via `systemd-nspawn --boot` |
-| `vm boot DIR` | `cli_boot()` | Emulates via QEMU using the rootfs as a 9p filesystem |
 | `sqli URI` | `sqli()` | Renders a database ER diagram via `eralchemy2` |
 
 ### Key helpers
