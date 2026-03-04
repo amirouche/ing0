@@ -278,9 +278,7 @@ def _iter_directories(root):
     for subdir, dirs, files in os.walk(root):
         if not is_interesting(subdir):
             continue
-        path = Path(root) / subdir
-        path = path.resolve()
-        yield path
+        yield Path(subdir).resolve()
 
 
 def sloc(directory):
