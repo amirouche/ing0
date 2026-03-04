@@ -47,7 +47,7 @@ def _images_iter_available():
     images = _images_index_fetch(URL)
     if images is None:
         print("Oops, can not query rootfs directory")
-        return 42
+        return
     for distribution in images:
         releases = _images_index_fetch(URL + distribution)
         for release in releases:
