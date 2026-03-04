@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import builtins
 import os
 import shlex
 import subprocess
@@ -249,7 +250,7 @@ def baggify(path, count=None, reverse=True):
     for name, total in bag:
         if len(name) <= 3:
             continue
-        if name in set([str(x) for x in dir(__builtins__)]):
+        if name in set(dir(builtins)):
             continue
         if name in IGNORED:
             continue
