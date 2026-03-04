@@ -90,7 +90,7 @@ def usage():
   ing0 vm available
   ing0 vm create DIRECTORY DISTRIBUTION RELEASE ARCH
   ing0 vm exec DIRECTORY [COMMAND ...]
-  ing0 vm spawn DIRECTORY
+  ing0 vm spawn DIRECTORY [MOUNT]
   ing0 sqli NAME
 """
     )
@@ -157,19 +157,26 @@ def cli_exec(directory, *extra):
     return code
 
 
-def cli_spawn(path):
+_FORBIDDEN_MOUNTS = {Path("/"), Path("/root"), Path.home()}
+
+
+def cli_spawn(path, mount=None):
     work = Path(path).resolve()
+    mnt = Path(mount).resolve() if mount else Path.cwd()
+    if mnt in _FORBIDDEN_MOUNTS:
+        print("Error: refusing to mount {}".format(mnt))
+        return 1
     print("* ing0: booting {}".format(work))
     print("** prepare...")
     _copy_resolv_conf(work)
     print("** spawning in progress...")
-    print("** mounting `{}` at `/mnt/`".format(Path.cwd()))
+    print("** mounting `{}` at `/mnt/`".format(mnt))
     # legacy
     # command = "systemd-nspawn --machine={name} --boot --capability=CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D '{work}' --bind={cwd}:/mnt"
 
     # new for docker within nspawn
     command = "systemd-nspawn --background= --machine={} --boot --system-call-filter='@keyring bpf' --capability=CAP_SYS_ADMIN,CAP_NET_ADMIN --network-veth --uuid=$(systemd-id128 new) -D {} --bind={}:/mnt".format(
-        shlex.quote(work.name), shlex.quote(str(work)), shlex.quote(str(Path.cwd()))
+        shlex.quote(work.name), shlex.quote(str(work)), shlex.quote(str(mnt))
     )
     code = subprocess.run(command, shell=True).returncode
     # forward systemd-nspawn exit code
@@ -310,6 +317,8 @@ def main():
             return cli_exec(*args)
         case ["vm", "spawn", name]:
             return cli_spawn(name)
+        case ["vm", "spawn", name, mount]:
+            return cli_spawn(name, mount)
         case ["sqli", uri, *includes]:
             return sqli(uri, "out.png", includes)
         case _:
