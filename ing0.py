@@ -5,6 +5,7 @@ import shlex
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urljoin
 
 DEBUG = os.environ.get("DEBUG")
 
@@ -15,7 +16,7 @@ def test_nop():
     assert True
 
 
-def run(command, verbose=False):
+def run(command, verbose=DEBUG):
     print("** subprocess.run({})".format(command))
     if verbose:
         return subprocess.run(command, shell=True, check=True, capture_output=True)
@@ -24,14 +25,11 @@ def run(command, verbose=False):
             command,
             shell=True,
             check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
         )
 
 
 def _images_index_fetch(url):
     from lxml.html import fromstring as string2html
-
     try:
         result = subprocess.run(
             ["curl", "-s", "--max-time", "3", url],
@@ -41,12 +39,12 @@ def _images_index_fetch(url):
         )
         html = string2html(result.stdout)
         directories = html.xpath("//a/text()")
-        latest = [x.rstrip("/") for x in sorted(directories, reverse=True)]
+        latest = [x.rstrip("/") for x in sorted(directories, reverse=True) if x.rstrip('/') != '..']
         return latest
-    except Exception:
+    except Exception as exc: 
         if DEBUG:
+            print('Exception: {}'.format(exc))
             raise
-
 
 def _images_iter_available():
     images = _images_index_fetch(URL)
@@ -54,28 +52,26 @@ def _images_iter_available():
         print("Oops, can not query rootfs directory")
         return
     for distribution in images:
-        releases = _images_index_fetch(URL + distribution)
+        releases = _images_index_fetch(urljoin(URL, distribution + '/'))
         if releases is None:
             continue
         for release in releases:
             for arch in ["amd64", "arm64"]:
+
                 yield from _images_iter_available_version(distribution, release, arch)
 
 
 def _images_iter_available_version(distribution, release, arch):
-    builds = _images_index_fetch(
-        URL + distribution + "/" + release + "/" + arch + "/default/"
-    )
+    url = URL + '/' + distribution + '/' + release + '/' + arch + '/' + 'default/'
+    builds = _images_index_fetch(url)
     if builds is None:
         return
     for build in builds:
-        url = "{URL}{distribution}/{release}/{arch}/default/{build}/".format(
-            URL=URL, distribution=distribution, release=release, arch=arch, build=build
-        )
+        url = URL + '/' + distribution + '/' + release + '/' + arch + '/' + 'default/' + build + '/'
         yield url
 
 
-def cli_images_available():
+def cli_images_available(args):
     for url in _images_iter_available():
         print(url)
 
@@ -121,10 +117,10 @@ def cli_create(directory, distribution, release, arch):
     # XXX: delete machine-id because it clash with systemd-d128 later in exec
     run("cd {} && rm -f etc/machine-id".format(shlex.quote(str(work))))
     # XXX: delete resolve.conf, and copy the host one when needed in exec
-    run("cd {} && rm -f etc/resolv.conf".format(shlex.quote(str(work))), verbose=True)
+    run("cd {} && rm -f etc/resolv.conf".format(shlex.quote(str(work))), verbose=DEBUG)
     run(
         "cd {} && echo {} > etc/hostname".format(shlex.quote(str(work)), shlex.quote(work.name)),
-        verbose=True,
+        verbose=DEBUG,
     )
     print("* ing0: what is done is not to be done!")
     return 0
@@ -310,7 +306,7 @@ def main():
         case ["fastapi", "routes"]:
             return fastapi_routes()
         case ["vm", "available", *args]:
-            return cli_images_available()
+            return cli_images_available(args)
         case ["vm", "create", *args]:
             return cli_create(*args)
         case ["vm", "exec", *args]:
